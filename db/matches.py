@@ -19,11 +19,11 @@ class Match(Base):
     home_shots_on_target = Column(Integer)
     away_shots_on_target = Column(Integer)
 
-    home_possesion = Column(Integer)
-    away_possesion = Column(Integer)
+    home_possession = Column(Integer)
+    away_possession = Column(Integer)
 
     home_corners = Column(Integer)
-    away_coners = Column(Integer)
+    away_corners = Column(Integer)
 
     home_yellow_cards = Column(Integer)
     away_yellow_cards = Column(Integer)

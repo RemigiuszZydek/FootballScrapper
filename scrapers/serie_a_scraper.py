@@ -1,23 +1,15 @@
 import requests
+from .scrape_utils import create_driver, stats_scraping
+from sqlalchemy.orm import Session
+from db.save_to_db import save_match
+from db.database import SessionLocal
+import csv
 import time
-from .scrape_utils import create_driver
+import random
 
 
 def slugify(name):
     return name.lower().replace(" ", "-")
-
-
-def stats_scraping(match_url: str):
-    driver, wait = create_driver(headless=False)
-
-    driver.get(match_url)
-
-
-    time.sleep(2)
-    driver.quit()
-
-
-
 
 
 URL = "https://prod-cdn-public-api.livescore.com/v1/api/app/competition/77/details/1/?locale=en"
@@ -33,38 +25,45 @@ print("Status:", response.status_code)
 
 data = response.json()
 
-# Wyciągamy eventy
 events = data["Stages"][0]["Events"]
 
-print("Liczba meczy:", len(events))
-
-print("-" * 50)
+session : Session = SessionLocal()
 
 for event in events:
-    eid = event["Eid"]
-    home = event["T1"][0]["Nm"]
-    away = event["T2"][0]["Nm"]
-    status = event.get("Eps", "Unknown")  # status meczu
+    try:
+        eid = event["Eid"]
+        home = event["T1"][0]["Nm"]
+        away = event["T2"][0]["Nm"]
+        status = event.get("Eps", "Unknown") 
 
-    # bezpieczne pobieranie wyniku
-    home_score = event.get("Tr1")
-    away_score = event.get("Tr2")
+        home_score = event.get("Tr1")
+        away_score = event.get("Tr2")
 
-    # jeśli wynik nie istnieje, ustaw "-"
-    if home_score is None or away_score is None:
+        if home_score is None or away_score is None:
+            continue
+
+        home_slug = slugify(home)
+        away_slug = slugify(away)
+
+        match_url = f"https://www.livescore.com/en/football/italy/serie-a/{home_slug}--vs--{away_slug}/{eid}"
+        
+        match_stats = stats_scraping(match_url)
+
+        match_stats.update({
+            "home_score": home_score,
+            "away_score": away_score
+        })
+
+        save_match(
+            session=session,
+            league_name="Serie A",
+            home_team_name=home,
+            away_team_name=away,
+            match_date=match_stats["match_date"],
+            stats=match_stats
+        )
+        time.sleep(random.uniform(1,3))
+        print("kolejny")
+    except Exception as e:
+        print(f"Nie udało się pobrać meczu  {eid}: {e}")
         continue
-
-    # print(f"{home} vs {away}")
-    # print(f"Wynik: {home_score} - {away_score}")
-    # print(f"Status: {status}")
-    # print(f"EID: {eid}")
-    # print("-" * 50)
-    home_slug = slugify(home)
-    away_slug = slugify(away)
-
-    match_url = f"https://www.livescore.com/en/football/italy/serie-a/{home_slug}--vs--{away_slug}/{eid}"
-    print(match_url)
-    
-    stats_scraping(match_url)
-    
-    break

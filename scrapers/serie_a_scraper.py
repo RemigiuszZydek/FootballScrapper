@@ -1,4 +1,24 @@
 import requests
+import time
+from .scrape_utils import create_driver
+
+
+def slugify(name):
+    return name.lower().replace(" ", "-")
+
+
+def stats_scraping(match_url: str):
+    driver, wait = create_driver(headless=False)
+
+    driver.get(match_url)
+
+
+    time.sleep(2)
+    driver.quit()
+
+
+
+
 
 URL = "https://prod-cdn-public-api.livescore.com/v1/api/app/competition/77/details/1/?locale=en"
 
@@ -34,8 +54,17 @@ for event in events:
     if home_score is None or away_score is None:
         continue
 
-    print(f"{home} vs {away}")
-    print(f"Wynik: {home_score} - {away_score}")
-    print(f"Status: {status}")
-    print(f"EID: {eid}")
-    print("-" * 50)
+    # print(f"{home} vs {away}")
+    # print(f"Wynik: {home_score} - {away_score}")
+    # print(f"Status: {status}")
+    # print(f"EID: {eid}")
+    # print("-" * 50)
+    home_slug = slugify(home)
+    away_slug = slugify(away)
+
+    match_url = f"https://www.livescore.com/en/football/italy/serie-a/{home_slug}--vs--{away_slug}/{eid}"
+    print(match_url)
+    
+    stats_scraping(match_url)
+    
+    break

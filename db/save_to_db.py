@@ -4,7 +4,7 @@ from .leagues import League
 from .matches import Match
 from .teams import Team
 
-def save_match(session: Session, league_name:str, home_team_name:str, away_team_name:str, match_date: datetime, stats:dict):
+def save_match(session: Session,external_id:str, league_name:str, home_team_name:str, away_team_name:str, match_date: datetime, stats:dict):
     league = session.query(League).filter_by(name=league_name).first()
     if not league:
         league = League(name=league_name)

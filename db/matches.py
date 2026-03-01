@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, String
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -7,6 +7,7 @@ class Match(Base):
 
     id = Column(Integer,primary_key=True)
 
+    external_id = Column(String, unique=True, index=True)
     league_id = Column(Integer, ForeignKey("leagues.id"))
     home_team_id = Column(Integer, ForeignKey("teams.id"))
     away_team_id = Column(Integer, ForeignKey("teams.id"))

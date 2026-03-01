@@ -3,6 +3,7 @@ from .scrape_utils import create_driver, stats_scraping
 from sqlalchemy.orm import Session
 from db.save_to_db import save_match
 from db.database import SessionLocal
+from db.matches import Match
 import csv
 import time
 import random
@@ -45,6 +46,14 @@ for event in events:
         home_slug = slugify(home)
         away_slug = slugify(away)
 
+        existing_match = session.query(Match).filter(
+            Match.external_id == str(eid)
+            ).first()
+
+        if existing_match:
+            print("Mecz już istnieje, pomijam:", eid)
+            continue
+
         match_url = f"https://www.livescore.com/en/football/italy/serie-a/{home_slug}--vs--{away_slug}/{eid}"
         
         match_stats = stats_scraping(match_url)
@@ -56,6 +65,7 @@ for event in events:
 
         save_match(
             session=session,
+            external_id = str(eid),
             league_name="Serie A",
             home_team_name=home,
             away_team_name=away,
